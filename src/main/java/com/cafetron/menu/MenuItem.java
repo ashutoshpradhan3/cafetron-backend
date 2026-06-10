@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Setter
 @NoArgsConstructor
-public class menuItemTable {
+public class MenuItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
