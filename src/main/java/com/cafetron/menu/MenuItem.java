@@ -1,5 +1,6 @@
 package com.cafetron.menu;
 
+import com.cafetron.vendor.Vendor;
 import jakarta.persistence.*;
 
 import lombok.Getter;
@@ -16,6 +17,10 @@ public class MenuItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vendor_id", nullable = false)
+    private Vendor vendor;
 
     @Column(name = "item_name", nullable = false)
     private String itemName;
