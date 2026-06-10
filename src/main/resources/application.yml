@@ -3,9 +3,9 @@ spring:
     name: cafetron-backend
 
   datasource:
-    url: jdbc:mysql://localhost:3306/cafetron?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${DB_USER:cafetron}
-    password: ${DB_PASSWORD:cafetron}
+    url: jdbc:mysql://localhost:3306/cafetron?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -17,7 +17,7 @@ spring:
     show-sql: true
 
 server:
-  port: 8080
+  port: 8081
 
 # --- Application-specific config ---
 cafetron:
