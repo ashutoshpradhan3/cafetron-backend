@@ -1,5 +1,7 @@
 package com.cafetron.pickup;
 
+import com.cafetron.cart.entity.OrderItem;
+import com.cafetron.vendor.Vendor;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,19 +20,13 @@ public class VendorOrderStatus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "order_id", nullable = false)
-//    private Order order;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "orderItem_id", nullable = false)
+    private OrderItem orderItem;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "vendor_id", nullable = false)
-//    private Vendor vendor;
-
-    @Column(name = "order_id")
-    private Long orderId;
-
-    @Column(name = "vendor_id")
-    private Long vendorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id", nullable = false)
+    private Vendor vendor;
 
     @Column(name = "status")
     private String status;
