@@ -28,3 +28,8 @@ cafetron:
   order:
     cancel-window-minutes: 5       # Module 3
     daily-cutoff: "15:00"          # Module 6 (simple LocalTime check, no Quartz)
+
+app:
+  jwt:
+    secret: Y2FmZXRyb24tc3VwZXItc2VjcmV0LWtleS1mb3ItaHMyNTYtand0LXRva2Vu
+    expiration: 86400000
