@@ -46,8 +46,8 @@ public class MenuItemService {
     }
 
     // READ one item by id.
-    public MenuItemResponse getById(Long id) {
-        MenuItem item = menuItemRepository.findById(id)
+    public MenuItemResponse getById(Long menuItemId) {
+        MenuItem item = menuItemRepository.findById(menuItemId)
                 .orElseThrow(() -> new RuntimeException("Menu item not found"));
         return toResponse(item);
     }
@@ -61,8 +61,8 @@ public class MenuItemService {
     }
 
     // UPDATE an existing item
-    public MenuItemResponse update(Long id, MenuItemRequest request) {
-        MenuItem item = menuItemRepository.findById(id)
+    public MenuItemResponse update(Long menuItemId, MenuItemRequest request) {
+        MenuItem item = menuItemRepository.findById(menuItemId)
                 .orElseThrow(() -> new RuntimeException("Menu item not found"));
 
         Vendor vendor = vendorRepository.findById(request.vendorId())
@@ -79,8 +79,8 @@ public class MenuItemService {
     }
 
     // DELETE an item by id.
-    public void delete(Long id) {
-        menuItemRepository.deleteById(id);
+    public void delete(Long menuItemId) {
+        menuItemRepository.deleteById(menuItemId);
     }
 
     // --- Employee-facing reads ---
@@ -106,11 +106,11 @@ public class MenuItemService {
     // --- Stock operations (with the auto-unavailable rule) ---
 
     // Set an item's stock (e.g. the morning restock).
-    public MenuItemResponse setStock(Long id, int newStock) {
+    public MenuItemResponse setStock(Long menuItemId, int newStock) {
         if (newStock < 0) {
             throw new RuntimeException("Stock cannot be negative");
         }
-        MenuItem item = menuItemRepository.findById(id)
+        MenuItem item = menuItemRepository.findById(menuItemId)
                 .orElseThrow(() -> new RuntimeException("Menu item not found"));
         item.setStock(newStock);
         item.setAvailable(newStock > 0); // auto rule: 0 -> hidden, else shown
@@ -118,8 +118,8 @@ public class MenuItemService {
     }
 
     // Manually show/hide an item (override). Can't enable a zero-stock item.
-    public MenuItemResponse setAvailability(Long id, boolean available) {
-        MenuItem item = menuItemRepository.findById(id)
+    public MenuItemResponse setAvailability(Long menuItemId, boolean available) {
+        MenuItem item = menuItemRepository.findById(menuItemId)
                 .orElseThrow(() -> new RuntimeException("Menu item not found"));
         if (available && item.getStock() == 0) {
             throw new RuntimeException("Cannot make an item available with zero stock");
@@ -129,8 +129,8 @@ public class MenuItemService {
     }
 
     // Reduce stock when an order is placed.
-    public MenuItemResponse decreaseStock(Long id, int quantity) {
-        MenuItem item = menuItemRepository.findById(id)
+    public MenuItemResponse decreaseStock(Long menuItemId, int quantity) {
+        MenuItem item = menuItemRepository.findById(menuItemId)
                 .orElseThrow(() -> new RuntimeException("Menu item not found"));
         if (item.getStock() < quantity) {
             throw new RuntimeException("Not enough stock");
