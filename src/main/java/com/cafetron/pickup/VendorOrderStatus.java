@@ -1,7 +1,7 @@
 package com.cafetron.pickup;
 
 import com.cafetron.cart.entity.OrderItem;
-import com.cafetron.vendor.Vendor;
+import com.cafetron.vendor.entity.Vendor;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

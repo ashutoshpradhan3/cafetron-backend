@@ -1,4 +1,4 @@
-package com.cafetron.vendor;
+package com.cafetron.vendor.entity;
 
 import com.cafetron.menu.entity.MenuItem;
 import com.cafetron.pickup.VendorOrderStatus;

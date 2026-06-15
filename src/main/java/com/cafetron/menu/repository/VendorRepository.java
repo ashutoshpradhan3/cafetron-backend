@@ -1,6 +1,6 @@
 package com.cafetron.menu.repository;
 
-import com.cafetron.vendor.Vendor;
+import com.cafetron.vendor.entity.Vendor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
