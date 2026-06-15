@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 //Inherits basic CRUD from JpaRepository
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
@@ -19,6 +20,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select m from MenuItem m where m.id = :id")
+<<<<<<< HEAD
     MenuItem findByIdForUpdate(@NotNull Long id);
 
     @Query("SELECT m FROM MenuItem m WHERE m.isAvailable = true AND m.vendor.isActive = true")
@@ -34,4 +36,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     @Query("SELECT m FROM MenuItem m WHERE m.isAvailable = true AND m.vendor.isActive = true " +
             "AND m.foodType = :foodType")
     List<MenuItem> filterByFoodType(@Param("foodType") String foodType);
+=======
+    Optional<MenuItem> findByIdForUpdate(@NotNull Long id);
+>>>>>>> a9668c5 (feat(order): implement placeOrder happy path with stock lock and wallet debit wiring)
 }

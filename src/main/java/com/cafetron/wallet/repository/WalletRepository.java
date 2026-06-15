@@ -9,6 +9,7 @@ import jakarta.persistence.LockModeType;
 import java.util.Optional;
 
 public interface WalletRepository extends JpaRepository<Wallet,Long> {
+    Optional<Wallet> findByUserId(Long userId);
     Optional<Wallet> findUserById(Long id);
 
     Optional<Wallet> findByUser_Id(Long userId);

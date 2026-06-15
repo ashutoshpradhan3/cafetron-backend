@@ -4,5 +4,5 @@ import com.cafetron.order.dto.PlaceOrderRequest;
 import com.cafetron.order.dto.PlaceOrderResponse;
 
 public interface OrderService {
-    PlaceOrderResponse placeOrder(PlaceOrderRequest request);
+    PlaceOrderResponse placeOrder(Long userId, PlaceOrderRequest request);
 }

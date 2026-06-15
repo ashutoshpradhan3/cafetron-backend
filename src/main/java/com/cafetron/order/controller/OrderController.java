@@ -19,7 +19,8 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PlaceOrderResponse placeOrder(@Valid @RequestBody PlaceOrderRequest request) {
-        return orderService.placeOrder(request);
+    // When Jwt is configured, this will change
+    public PlaceOrderResponse placeOrder(@RequestParam Long userId, @Valid @RequestBody PlaceOrderRequest request) {
+        return orderService.placeOrder(userId,request);
     }
 }

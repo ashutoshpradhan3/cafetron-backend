@@ -8,8 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record PlaceOrderRequest(
-        // TODO: check if userId is string or Long (temp untill auth)
-        @NotNull Long userId,
+        // TODO: check if userId is string or Long (temp until auth)
         @NotBlank String pickupSlot,
         @Valid @NotEmpty List<PlaceOrderItemRequest> items
 ) {

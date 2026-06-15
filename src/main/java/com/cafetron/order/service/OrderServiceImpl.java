@@ -9,6 +9,7 @@ import com.cafetron.order.dto.PlaceOrderRequest;
 import com.cafetron.order.dto.PlaceOrderResponse;
 import com.cafetron.order.entity.Order;
 import com.cafetron.order.repository.OrderRepository;
+import com.cafetron.wallet.service.WalletService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,20 +27,23 @@ public class OrderServiceImpl implements OrderService {
     private final MenuItemRepository menuItemRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final WalletService walletService;
 
     public OrderServiceImpl(
             MenuItemRepository menuItemRepository,
             OrderRepository orderRepository,
-            OrderItemRepository orderItemRepository
+            OrderItemRepository orderItemRepository,
+            WalletService walletService
     ) {
         this.menuItemRepository = menuItemRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.walletService = walletService;
     }
 
     @Override
     @Transactional
-    public PlaceOrderResponse placeOrder(PlaceOrderRequest request) {
+    public PlaceOrderResponse placeOrder(Long userId, PlaceOrderRequest request) {
         if (request.items() == null || request.items().isEmpty()) {
             throw new IllegalArgumentException("Order must contain at least one item.");
         }
@@ -51,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
 
         //Populate the order obj
         Order order = new Order();
+        order.setUserId(userId);
         // Current Order entity does not have pickupSlot/userId yet, so pickupSlot is stored in location.
         order.setLocation(request.pickupSlot());
         order.setOverallStatus("PLACED");
@@ -63,10 +68,10 @@ public class OrderServiceImpl implements OrderService {
                 throw new IllegalArgumentException("Quantity must be greater than 0.");
             }
 
-            MenuItem menuItem = menuItemRepository.findByIdForUpdate(itemRequest.menuItemId());
-            if (menuItem == null) {
-                throw new IllegalArgumentException("Menu item not found: " + itemRequest.menuItemId());
-            }
+            //using optional enables us to handle null checks safely
+            MenuItem menuItem = menuItemRepository.findByIdForUpdate(itemRequest.menuItemId())
+                    .orElseThrow(() -> new IllegalArgumentException("Menu item not found: " + itemRequest.menuItemId()));
+
             if (!menuItem.isAvailable()) {
                 throw new IllegalStateException("Menu item is not available: " + menuItem.getItemName());
             }
@@ -88,7 +93,7 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setOrder(order);
             orderItem.setMenuItem(menuItem);
             orderItem.setQuantity(itemRequest.quantity());
-            orderItem.setUnit_price(unitPrice);
+            orderItem.setUnitPrice(unitPrice);
             orderItems.add(orderItem);
 
             if (menuItem.getVendor() != null && menuItem.getVendor().getId() != null) {
@@ -99,6 +104,8 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
         order.setVendorCount(uniqueVendorIds.size());
         order.setVendorAcceptedCount(0);
+
+        walletService.debit(userId,totalAmount,"Order placement");
 
         Order savedOrder = orderRepository.save(order);
         for (OrderItem orderItem : orderItems) {
