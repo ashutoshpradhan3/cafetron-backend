@@ -35,7 +35,7 @@ public class Vendor {
     private String contactPerson;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    private boolean isActive = true;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -51,4 +51,5 @@ public class Vendor {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
 }
