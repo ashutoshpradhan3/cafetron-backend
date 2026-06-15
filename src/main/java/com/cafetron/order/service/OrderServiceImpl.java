@@ -174,14 +174,14 @@ public class OrderServiceImpl implements OrderService {
             throw new SecurityException("Access denied: order does not belong to this user.");
         }
 
-        // 3. fetch all order items for this order (menuItem loaded via join)
-        List<OrderItem> orderItems = orderItemRepository.findByOrder_Id(orderId);
+         // 3. fetch all order items for this order with menuItem eagerly loaded via join to prevent N+1
+         List<OrderItem> orderItems = orderItemRepository.findByOrder_IdWithMenuItems(orderId);
 
-        // fetch vendor status rows and index by orderItem id for O(1) lookup during mapping
-        Map<Long, VendorOrderStatusType> statusByOrderItemId = new HashMap<>();
-        for (VendorOrderStatus vendorStatus : vendorOrderStatusRepository.findByOrderItem_Order_Id(orderId)) {
-            statusByOrderItemId.put(vendorStatus.getOrderItem().getId(), vendorStatus.getStatus());
-        }
+         // fetch vendor status rows and index by orderItem id for O(1) lookup during mapping
+         Map<Long, VendorOrderStatusType> statusByOrderItemId = new HashMap<>();
+         for (VendorOrderStatus vendorStatus : vendorOrderStatusRepository.findByOrderItem_Order_IdWithOrderItem(orderId)) {
+             statusByOrderItemId.put(vendorStatus.getOrderItem().getId(), vendorStatus.getStatus());
+         }
 
         // 4. map each OrderItem -> OrderDetailItemResponse
         List<OrderDetailItemResponse> itemResponses = new ArrayList<>();
@@ -220,8 +220,8 @@ public class OrderServiceImpl implements OrderService {
             throw new SecurityException("Access denied: order does not belong to this user.");
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        List<VendorOrderStatus> statuses = vendorOrderStatusRepository.findByOrderItem_Order_Id(orderId);
+         LocalDateTime now = LocalDateTime.now();
+         List<VendorOrderStatus> statuses = vendorOrderStatusRepository.findByOrderItem_Order_IdWithOrderItem(orderId);
 
         boolean timeoutApplied = false;
         for (VendorOrderStatus status : statuses) {

@@ -13,11 +13,9 @@ import java.math.BigDecimal;
 @Service
 public class WalletServiceImpl implements WalletService {
 
-    // TODO: declare final fields for WalletRepository and TransactionRepository
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
 
-    // TODO: constructor injection
     public WalletServiceImpl(WalletRepository walletRepository, TransactionRepository transactionRepository) {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;

@@ -5,8 +5,10 @@ import com.cafetron.order.dto.OrderDetailResponse;
 import com.cafetron.order.dto.PlaceOrderRequest;
 import com.cafetron.order.dto.PlaceOrderResponse;
 import com.cafetron.order.service.OrderService;
+import com.cafetron.security.UserPrincipal;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,27 +25,26 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    // When Jwt is configured, this will change
-    public PlaceOrderResponse placeOrder(@RequestParam Long userId, @Valid @RequestBody PlaceOrderRequest request) {
-        return orderService.placeOrder(userId,request);
+    public PlaceOrderResponse placeOrder(@AuthenticationPrincipal UserPrincipal principal, @Valid @RequestBody PlaceOrderRequest request) {
+        return orderService.placeOrder(principal.getId(), request);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<MyOrderSummaryResponse> getMyOrderSummary(@RequestParam Long userId){
-        return orderService.getMyOrders(userId);
+    public List<MyOrderSummaryResponse> getMyOrderSummary(@AuthenticationPrincipal UserPrincipal principal){
+        return orderService.getMyOrders(principal.getId());
     }
 
     @GetMapping("/{orderId}")
     @ResponseStatus(HttpStatus.OK)
-    public OrderDetailResponse getOrderDetail(@RequestParam Long userId, @PathVariable Long orderId){
-        return orderService.getOrderDetail(userId, orderId);
+    public OrderDetailResponse getOrderDetail(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long orderId){
+        return orderService.getOrderDetail(principal.getId(), orderId);
     }
 
     @PostMapping("/{orderId}/timeout")
     @ResponseStatus(HttpStatus.OK)
-    public OrderDetailResponse processTimeout(@RequestParam Long userId, @PathVariable Long orderId) {
-        return orderService.processTimeout(userId, orderId);
+    public OrderDetailResponse processTimeout(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long orderId) {
+        return orderService.processTimeout(principal.getId(), orderId);
     }
 
 }
