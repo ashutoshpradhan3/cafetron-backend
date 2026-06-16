@@ -26,24 +26,38 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PlaceOrderResponse placeOrder(@AuthenticationPrincipal UserPrincipal principal, @Valid @RequestBody PlaceOrderRequest request) {
+
+        if ( principal == null ) {
+            throw new IllegalStateException("User is not authenticated");
+        }
+
         return orderService.placeOrder(principal.getId(), request);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<MyOrderSummaryResponse> getMyOrderSummary(@AuthenticationPrincipal UserPrincipal principal){
+        if ( principal == null ) {
+            throw new IllegalStateException("User is not authenticated");
+        }
         return orderService.getMyOrders(principal.getId());
     }
 
     @GetMapping("/{orderId}")
     @ResponseStatus(HttpStatus.OK)
     public OrderDetailResponse getOrderDetail(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long orderId){
+        if ( principal == null ) {
+            throw new IllegalStateException("User is not authenticated");
+        }
         return orderService.getOrderDetail(principal.getId(), orderId);
     }
 
     @PostMapping("/{orderId}/timeout")
     @ResponseStatus(HttpStatus.OK)
     public OrderDetailResponse processTimeout(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long orderId) {
+        if ( principal == null ) {
+            throw new IllegalStateException("User is not authenticated");
+        }
         return orderService.processTimeout(principal.getId(), orderId);
     }
 
