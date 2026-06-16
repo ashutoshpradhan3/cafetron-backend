@@ -9,9 +9,9 @@ import jakarta.persistence.LockModeType;
 import java.util.Optional;
 
 public interface WalletRepository extends JpaRepository<Wallet,Long> {
-    Optional<Wallet> findByUserId(Long userId);
+    Optional<Wallet> findByUser_Id(Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT w FROM Wallet w WHERE w.userId = :userId")
+    @Query("SELECT w FROM Wallet w WHERE w.user.id = :userId")
     Optional<Wallet> findByUserIdForUpdate(@Param("userId") Long userId);
 }

@@ -1,5 +1,6 @@
 package com.cafetron.wallet.entity;
 
+import com.cafetron.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -17,8 +18,9 @@ public class Wallet {
     @GeneratedValue(strategy =  GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false, unique = true)
-    private Long userId;
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
@@ -26,6 +28,16 @@ public class Wallet {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    private Long version;
+
+    @PrePersist
+    public void onCreate(){
+        this.updatedAt=LocalDateTime.now();
+        if(this.balance==null){
+            this.balance=BigDecimal.ZERO;
+        }
+    }
     @PreUpdate
     public void onUpdate(){
         this.updatedAt=LocalDateTime.now();

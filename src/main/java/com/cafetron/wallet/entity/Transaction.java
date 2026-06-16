@@ -1,5 +1,6 @@
 package com.cafetron.wallet.entity;
 
+import com.cafetron.order.entity.Order;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -19,14 +20,14 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "wallet_id", nullable = false)
-    private Long walletId;
+    @ManyToOne
+    @JoinColumn(name = "wallet_id", nullable = false)
+    private Wallet wallet;
 
-    @Column(name="order_id")
-    private Long orderId;
+    @ManyToOne
+    @JoinColumn(name="order_id")
+    private Order order;
 
-    @Column(name="vendor_id")
-    private Long vendorId;
 
     @Column(nullable = false,precision = 19, scale = 2)
     private BigDecimal amount;

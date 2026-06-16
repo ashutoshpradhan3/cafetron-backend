@@ -9,11 +9,11 @@ import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-    Page<Transaction> findByWalletIdOrderByCreatedAtDesc(Long walletId, Pageable pageable);
+    Page<Transaction> findByWallet_IdOrderByCreatedAtDesc(Long walletId, Pageable pageable);
 
-    List<Transaction> findByWalletIdOrderByCreatedAtDesc(Long walletId);
+    List<Transaction> findByWallet_IdOrderByCreatedAtDesc(Long walletId);
 
-    List<Transaction> findByOrderId(Long orderId);
+    List<Transaction> findByOrder_Id(Long orderId);
 
-    boolean existsByOrderIdAndType(Long orderId, TransactionType type);
+    boolean existsByOrder_IdAndType(Long orderId, TransactionType type);
 }
