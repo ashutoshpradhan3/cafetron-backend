@@ -4,7 +4,9 @@ import com.cafetron.order.entity.Order;
 import com.cafetron.order.repository.OrderRepository;
 import com.cafetron.orderQR.dto.DecodeQRResponse;
 import com.cafetron.orderQR.dto.GenQRResponse;
+import com.cafetron.orderQR.entity.OrderQR;
 import com.cafetron.orderQR.exception.QRDecodeException;
+import com.cafetron.orderQR.repository.OrderQRRepository;
 import com.cafetron.orderQR.service.OrderQRService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,10 +22,13 @@ public class OrderQRController {
     OrderQRService orderQRService;
 
     @Autowired
+    OrderQRRepository orderQRRepository;
+
+    @Autowired
     OrderRepository orderRepository;
 
     @GetMapping
-    public ResponseEntity<GenQRResponse> generateQR(@RequestParam("orderId") Long orderId) {
+    public ResponseEntity<GenQRResponse> findQR(@RequestParam("orderId") Long orderId) {
 
         Order order = orderRepository.findById(orderId)
                 .orElse(null);
@@ -33,7 +38,13 @@ public class OrderQRController {
                     .body(new GenQRResponse(null, "Order not found"));
         }
 
-        String base64String = orderQRService.generateAndStoreQR(order);
+        OrderQR orderQR = orderQRRepository.findByOrderId(orderId).orElse(null);
+
+        if ( orderQR == null ) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new GenQRResponse(null, "No QR code found for this order"));
+        }
+
+        String base64String = orderQR.getQrData();
 
         if ( base64String == null ) {
             return ResponseEntity.internalServerError()
