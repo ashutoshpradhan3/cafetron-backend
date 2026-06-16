@@ -32,7 +32,7 @@ public interface ReportVendorRepository extends JpaRepository<Vendor, Long> {
             com.cafetron.pickup.VendorOrderStatusType.DECLINED,
             com.cafetron.pickup.VendorOrderStatusType.TIMEOUT
         )
-          AND DATE(o.createdAt) = :date
+          AND CAST(o.createdAt AS date) = :date
         GROUP BY v.id, v.name
         ORDER BY COUNT(vos) DESC
     """)

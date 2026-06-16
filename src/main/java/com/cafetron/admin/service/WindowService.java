@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * Holds ordering window state in memory.
@@ -71,9 +72,14 @@ public class WindowService {
     }
 
     public OpsStatusDTO updateCutoff(String timeStr) {
-        this.cutoffTime = LocalTime.parse(timeStr, FMT);
-        log.info("Cutoff time updated to: {}", timeStr);
-        return getStatus();
+        try {
+            this.cutoffTime = LocalTime.parse(timeStr, FMT);
+            log.info("Cutoff time updated to: {}", timeStr);
+            return getStatus();
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException(
+                    "Invalid cutoff time (expected HH:mm): " + timeStr, ex);
+        }
     }
 
     public OpsStatusDTO getStatus() {

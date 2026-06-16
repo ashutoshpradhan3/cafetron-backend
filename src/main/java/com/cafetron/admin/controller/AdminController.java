@@ -4,6 +4,7 @@ import com.cafetron.admin.dto.OpsStatusDTO;
 import com.cafetron.admin.service.WindowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
+//@PreAuthorize("hasAuthority('admin')")
 public class AdminController {
 
     private final WindowService windowService;

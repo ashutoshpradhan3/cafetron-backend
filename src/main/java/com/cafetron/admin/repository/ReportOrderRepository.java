@@ -55,7 +55,7 @@ public interface ReportOrderRepository extends JpaRepository<Order, Long> {
             COUNT(o)
         )
         FROM Order o
-        WHERE DATE(o.createdAt) = :date
+        WHERE CAST(o.createdAt AS date) = :date
         GROUP BY o.overallStatus
         ORDER BY COUNT(o) DESC
     """)

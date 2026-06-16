@@ -5,6 +5,7 @@ import com.cafetron.admin.repository.ReportOrderItemRepository;
 import com.cafetron.admin.repository.ReportOrderRepository;
 import com.cafetron.admin.repository.ReportVendorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +33,10 @@ public class ReportService {
     }
 
     public List<TopItemDTO> getTopItems(int limit) {
-        return orderItemRepository.getTopItems()
-                .stream().limit(limit).toList();
+        if (limit <= 0) return List.of();
+        return orderItemRepository.getTopItems(
+                PageRequest.of(0, limit)   // page 0, size = limit
+        );
     }
 
     public List<RevenuePointDTO> getRevenueRange(LocalDate from, LocalDate to) {
@@ -108,9 +111,16 @@ public class ReportService {
 
     private String escapeCsv(String value) {
         if (value == null) return "";
-        if (value.contains(",") || value.contains("\"")) {
-            return "\"" + value.replace("\"", "\"\"") + "\"";
+        String v = value;
+        // Prevent formula injection in spreadsheet apps
+        if (!v.isEmpty() && "=+-@\t".indexOf(v.charAt(0)) >= 0) {
+            v = "'" + v;
         }
-        return value;
+        // Quote if contains comma, quote, or newline
+        if (v.contains(",") || v.contains("\"")
+                || v.contains("\n") || v.contains("\r")) {
+            return "\"" + v.replace("\"", "\"\"") + "\"";
+        }
+        return v;
     }
 }

@@ -2,6 +2,7 @@ package com.cafetron.admin.repository;
 
 import com.cafetron.admin.dto.TopItemDTO;
 import com.cafetron.cart.entity.OrderItem;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -30,5 +31,5 @@ public interface ReportOrderItemRepository extends JpaRepository<OrderItem, Long
         GROUP BY mi.id, mi.itemName
         ORDER BY SUM(oi.quantity) DESC
     """)
-    List<TopItemDTO> getTopItems();
+    List<TopItemDTO> getTopItems(Pageable pageable);
 }
