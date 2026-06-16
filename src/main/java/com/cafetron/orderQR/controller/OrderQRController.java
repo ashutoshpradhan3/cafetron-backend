@@ -4,7 +4,6 @@ import com.cafetron.order.entity.Order;
 import com.cafetron.order.repository.OrderRepository;
 import com.cafetron.orderQR.dto.DecodeQRResponse;
 import com.cafetron.orderQR.dto.GenQRResponse;
-import com.cafetron.orderQR.dto.QRRequest;
 import com.cafetron.orderQR.exception.QRDecodeException;
 import com.cafetron.orderQR.service.OrderQRService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +23,8 @@ public class OrderQRController {
     OrderRepository orderRepository;
 
     @GetMapping
-    public ResponseEntity<GenQRResponse> generateQR(@RequestBody QRRequest request) {
+    public ResponseEntity<GenQRResponse> generateQR(@RequestParam("orderId") Long orderId) {
 
-        Long orderId = request.orderId();
         Order order = orderRepository.findById(orderId)
                 .orElse(null);
 
@@ -65,7 +63,7 @@ public class OrderQRController {
         boolean doesOrderExist = orderRepository.findByToken(token).isPresent();
 
         if ( !doesOrderExist ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new DecodeQRResponse(false, null, "No order found for this token"));
         }
 
