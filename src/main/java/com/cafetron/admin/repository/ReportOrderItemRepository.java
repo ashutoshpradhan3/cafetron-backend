@@ -27,7 +27,8 @@ public interface ReportOrderItemRepository extends JpaRepository<OrderItem, Long
         FROM OrderItem oi
         JOIN oi.menuItem mi
         JOIN oi.order o
-        WHERE o.overallStatus NOT IN ('CANCELLED', 'VENDOR_DECLINED')
+        WHERE o.overallStatus NOT IN ('CANCELLED', 'VENDOR_DECLINED', 'TIMEOUT')
+          AND o.paymentStatus <> 'REFUNDED'
         GROUP BY mi.id, mi.itemName
         ORDER BY SUM(oi.quantity) DESC
     """)

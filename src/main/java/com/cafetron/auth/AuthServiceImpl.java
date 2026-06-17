@@ -59,6 +59,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        validateRegisterRequest(request);
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException(
@@ -157,5 +158,20 @@ public class AuthServiceImpl implements AuthService {
 
         String normalizedRole = role.trim().replaceFirst("^ROLE_", "").toUpperCase();
         return "COUNTER".equals(normalizedRole) ? "VENDOR" : normalizedRole;
+    }
+
+    private void validateRegisterRequest(RegisterRequest request) {
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new IllegalArgumentException("Name is required");
+        }
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+        if (request.getEmployeeId() == null || request.getEmployeeId().isBlank()) {
+            throw new IllegalArgumentException("Employee ID is required");
+        }
     }
 }

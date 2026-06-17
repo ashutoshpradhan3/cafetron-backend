@@ -22,12 +22,14 @@ public interface ReportOrderRepository extends JpaRepository<Order, Long> {
                 SELECT SUM(oi.quantity) 
                 FROM OrderItem oi 
                 WHERE CAST(oi.order.createdAt AS date) = :date
-                  AND oi.order.overallStatus NOT IN ('CANCELLED', 'VENDOR_DECLINED')
+                  AND oi.order.overallStatus NOT IN ('CANCELLED', 'VENDOR_DECLINED', 'TIMEOUT')
+                  AND oi.order.paymentStatus <> 'REFUNDED'
             ), 0)
         )
         FROM Order o
         WHERE CAST(o.createdAt AS date) = :date
-          AND o.overallStatus NOT IN ('CANCELLED', 'VENDOR_DECLINED')
+          AND o.overallStatus NOT IN ('CANCELLED', 'VENDOR_DECLINED', 'TIMEOUT')
+          AND o.paymentStatus <> 'REFUNDED'
     """)
     DailySummaryDTO getDailySummary(@Param("date") LocalDate date);
 
@@ -41,7 +43,8 @@ public interface ReportOrderRepository extends JpaRepository<Order, Long> {
         SELECT DATE(created_at) as date, COALESCE(SUM(total_amount), 0) as revenue
         FROM `Order`
         WHERE DATE(created_at) BETWEEN :from AND :to
-          AND overall_status NOT IN ('CANCELLED', 'VENDOR_DECLINED')
+          AND overall_status NOT IN ('CANCELLED', 'VENDOR_DECLINED', 'TIMEOUT')
+          AND payment_status <> 'REFUNDED'
         GROUP BY DATE(created_at)
         ORDER BY DATE(created_at) ASC
     """, nativeQuery = true)

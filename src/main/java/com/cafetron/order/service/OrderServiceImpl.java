@@ -61,7 +61,6 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
-        Set<Long> uniqueVendorIds = new HashSet<>();
 
         Order order = new Order();
         order.setUserId(userId);
@@ -96,14 +95,10 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setQuantity(itemRequest.quantity());
             orderItem.setUnitPrice(unitPrice);
             orderItems.add(orderItem);
-
-            if (menuItem.getVendor() != null && menuItem.getVendor().getId() != null) {
-                uniqueVendorIds.add(menuItem.getVendor().getId());
-            }
         }
 
         order.setTotalAmount(totalAmount);
-        order.setVendorCount(uniqueVendorIds.size());
+        order.setVendorCount(orderItems.size());
         order.setVendorAcceptedCount(0);
 
         walletService.debit(userId, totalAmount, "Order placement");
@@ -268,6 +263,10 @@ public class OrderServiceImpl implements OrderService {
             throw new SecurityException("Access denied: order does not belong to this user.");
         }
 
+        if (isClosedOrder(order)) {
+            return getOrderDetail(userId, orderId);
+        }
+
          LocalDateTime now = LocalDateTime.now();
          List<VendorOrderStatus> statuses = vendorOrderStatusRepository.findByOrderItem_Order_IdWithOrderItem(orderId);
 
@@ -295,5 +294,13 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return getOrderDetail(userId, orderId);
+    }
+
+    private boolean isClosedOrder(Order order) {
+        String orderStatus = order.getOverallStatus() == null ? "" : order.getOverallStatus();
+        return "VENDOR_DECLINED".equalsIgnoreCase(orderStatus)
+                || "TIMEOUT".equalsIgnoreCase(orderStatus)
+                || "CANCELLED".equalsIgnoreCase(orderStatus)
+                || "REFUNDED".equalsIgnoreCase(order.getPaymentStatus());
     }
 }

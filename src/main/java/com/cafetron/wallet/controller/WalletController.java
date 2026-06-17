@@ -9,9 +9,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/wallet")
@@ -24,7 +26,7 @@ public class WalletController {
     public ResponseEntity<WalletResponseDto> getWallet(
             @AuthenticationPrincipal UserPrincipal principal) {
 
-        WalletResponseDto response = walletService.getWallet(principal.getId());
+        WalletResponseDto response = walletService.getWallet(requirePrincipal(principal).getId());
         return ResponseEntity.ok(response);
     }
 
@@ -33,7 +35,7 @@ public class WalletController {
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody TopUpRequestDto request) {
 
-        walletService.topUp(principal.getId(), request.getAmount());
+        walletService.topUp(requirePrincipal(principal).getId(), request.getAmount());
         return ResponseEntity.ok("Wallet topped up successfully");
     }
 
@@ -44,7 +46,14 @@ public class WalletController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        PagedTransactionDto response = walletService.getTransactions(principal.getId(),  pageable);
+        PagedTransactionDto response = walletService.getTransactions(requirePrincipal(principal).getId(),  pageable);
         return ResponseEntity.ok(response);
+    }
+
+    private UserPrincipal requirePrincipal(UserPrincipal principal) {
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return principal;
     }
 }

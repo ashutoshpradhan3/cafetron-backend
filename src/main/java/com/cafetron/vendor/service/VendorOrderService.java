@@ -8,6 +8,7 @@ import com.cafetron.pickup.VendorOrderStatusType;
 import com.cafetron.pickup.repository.VendorOrderStatusRepository;
 import com.cafetron.security.UserPrincipal;
 import com.cafetron.vendor.dto.VendorOrderResponse;
+import com.cafetron.wallet.service.WalletService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +26,16 @@ public class VendorOrderService {
 
     private final VendorOrderStatusRepository vendorOrderStatusRepository;
     private final OrderRepository orderRepository;
+    private final WalletService walletService;
 
     public VendorOrderService(
             VendorOrderStatusRepository vendorOrderStatusRepository,
-            OrderRepository orderRepository
+            OrderRepository orderRepository,
+            WalletService walletService
     ) {
         this.vendorOrderStatusRepository = vendorOrderStatusRepository;
         this.orderRepository = orderRepository;
+        this.walletService = walletService;
     }
 
     @Transactional(readOnly = true)
@@ -48,12 +52,14 @@ public class VendorOrderService {
         VendorOrderStatus status = getOwnedStatus(principal, statusId);
         requirePending(status);
 
+        Order order = status.getOrderItem().getOrder();
+        requireOrderActionable(order);
+
         status.setStatus(VendorOrderStatusType.ACCEPTED);
         status.setActionedAt(LocalDateTime.now());
         status.setDeclinedReason(null);
         vendorOrderStatusRepository.save(status);
 
-        Order order = status.getOrderItem().getOrder();
         int acceptedCount = order.getVendorAcceptedCount() == null ? 0 : order.getVendorAcceptedCount();
         order.setVendorAcceptedCount(acceptedCount + 1);
         if (order.getVendorCount() != null && order.getVendorAcceptedCount() >= order.getVendorCount()) {
@@ -71,16 +77,26 @@ public class VendorOrderService {
         VendorOrderStatus status = getOwnedStatus(principal, statusId);
         requirePending(status);
 
+        Order order = status.getOrderItem().getOrder();
+        requireOrderActionable(order);
+
         status.setStatus(VendorOrderStatusType.DECLINED);
         status.setDeclinedReason(reason == null || reason.isBlank() ? "Declined by vendor" : reason.trim());
         status.setActionedAt(LocalDateTime.now());
         vendorOrderStatusRepository.save(status);
 
-        Order order = status.getOrderItem().getOrder();
         order.setOverallStatus("VENDOR_DECLINED");
+        refundOrderIfNeeded(order, "Order declined by vendor");
         orderRepository.save(order);
 
         return toResponse(status);
+    }
+
+    private void refundOrderIfNeeded(Order order, String description) {
+        if (!"REFUNDED".equalsIgnoreCase(order.getPaymentStatus())) {
+            walletService.refund(order.getUserId(), order.getTotalAmount(), description);
+            order.setPaymentStatus("REFUNDED");
+        }
     }
 
     private VendorOrderStatus getOwnedStatus(UserPrincipal principal, Long statusId) {
@@ -113,6 +129,18 @@ public class VendorOrderService {
     private void requirePending(VendorOrderStatus status) {
         if (status.getStatus() != VendorOrderStatusType.PENDING) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This order has already been actioned");
+        }
+    }
+
+    private void requireOrderActionable(Order order) {
+        String orderStatus = order.getOverallStatus() == null ? "" : order.getOverallStatus();
+        boolean terminalOrder = "VENDOR_DECLINED".equalsIgnoreCase(orderStatus)
+                || "TIMEOUT".equalsIgnoreCase(orderStatus)
+                || "CANCELLED".equalsIgnoreCase(orderStatus);
+        boolean refunded = "REFUNDED".equalsIgnoreCase(order.getPaymentStatus());
+
+        if (terminalOrder || refunded) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This order is already closed");
         }
     }
 

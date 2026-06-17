@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -50,6 +51,7 @@ public class OrderController {
         if ( principal == null ) {
             throw new IllegalStateException("User is not authenticated");
         }
+        requireVendorOrAdmin(principal);
         return orderService.getOrderDetailByToken(principal, token);
     }
 
@@ -69,6 +71,13 @@ public class OrderController {
             throw new IllegalStateException("User is not authenticated");
         }
         return orderService.processTimeout(principal.getId(), orderId);
+    }
+
+    private void requireVendorOrAdmin(UserPrincipal principal) {
+        String role = principal.getRole() == null ? "" : principal.getRole();
+        if (!"VENDOR".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vendor access required");
+        }
     }
 
 }

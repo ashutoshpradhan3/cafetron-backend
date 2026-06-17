@@ -31,7 +31,12 @@ public class OrderQRController {
 
     @GetMapping
     @SuppressWarnings("unused")
-    public ResponseEntity<GenQRResponse> findQR(@RequestParam("orderId") Long orderId) {
+    public ResponseEntity<GenQRResponse> findQR(@AuthenticationPrincipal UserPrincipal principal,
+                                                @RequestParam("orderId") Long orderId) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new GenQRResponse(null, "Authentication required"));
+        }
 
         Order order = orderRepository.findById(orderId)
                 .orElse(null);
@@ -39,6 +44,11 @@ public class OrderQRController {
         if ( order == null ) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new GenQRResponse(null, "Order not found"));
+        }
+
+        if (!canViewQr(principal, order)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new GenQRResponse(null, "You cannot access this order QR"));
         }
 
         OrderQR orderQR = orderQRRepository.findByOrderId(orderId).orElse(null);
@@ -62,6 +72,15 @@ public class OrderQRController {
     @SuppressWarnings("unused")
     public ResponseEntity<DecodeQRResponse> decodeQR(@AuthenticationPrincipal UserPrincipal principal,
                                                      @RequestParam("qr") MultipartFile file) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new DecodeQRResponse(false, null, "Authentication required"));
+        }
+        if (!canDecodeQr(principal)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new DecodeQRResponse(false, null, "Vendor access required"));
+        }
+
         String token;
 
         try {
@@ -84,5 +103,15 @@ public class OrderQRController {
         }
 
         return ResponseEntity.ok(new DecodeQRResponse(true, token, "QR code decoded successfully"));
+    }
+
+    private boolean canViewQr(UserPrincipal principal, Order order) {
+        return order.getUserId().equals(principal.getId())
+                || "ADMIN".equalsIgnoreCase(principal.getRole());
+    }
+
+    private boolean canDecodeQr(UserPrincipal principal) {
+        return "VENDOR".equalsIgnoreCase(principal.getRole())
+                || "ADMIN".equalsIgnoreCase(principal.getRole());
     }
 }
