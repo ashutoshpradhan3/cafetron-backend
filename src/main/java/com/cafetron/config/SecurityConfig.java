@@ -81,17 +81,9 @@ public class SecurityConfig {
 //                        .anyRequest().authenticated()
 
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers(HttpMethod.POST,
-                                        "/api/auth/register",
-                                        "/api/auth/login",
-                                        "/auth/register",
-                                        "/auth/login"
-                                ).permitAll()
                                 .requestMatchers(
-                                        "/api/auth/register",
-                                        "/api/auth/login",
-                                        "/auth/register",
-                                        "/auth/login"
+                                        "/api/auth/**",
+                                        "/auth/**"
                                 ).permitAll()
                                 .requestMatchers("/api/admin/**", "/api/dev/**").hasRole("ADMIN")
                                 .requestMatchers("/api/vendor/orders/**").hasAnyRole("VENDOR", "ADMIN")
