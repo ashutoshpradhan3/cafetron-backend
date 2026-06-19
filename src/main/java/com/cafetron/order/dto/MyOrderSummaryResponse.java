@@ -10,6 +10,7 @@ public record MyOrderSummaryResponse(
         BigDecimal totalAmount,
         String pickupSlot,
         String location,
+        String pickupTimeZone,
         LocalDateTime createdAt
         ) {}
 

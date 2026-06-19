@@ -37,6 +37,9 @@ public class Order {
     @Column(name = "pickupSlot")
     private String pickupSlot;
 
+    @Column(name = "pickup_time_zone")
+    private String pickupTimeZone;
+
     @Column(name = "total_amount")
     private BigDecimal totalAmount;
 

@@ -10,6 +10,7 @@ public record OrderDetailResponse(
         java.math.BigDecimal totalAmount,
         String pickupSlot,
         String location,
+        String pickupTimeZone,
         String qrToken,
         LocalDateTime createdAt,
         List<OrderDetailItemResponse> items

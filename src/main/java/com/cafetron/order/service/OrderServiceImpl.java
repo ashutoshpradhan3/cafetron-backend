@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -64,7 +65,9 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = new Order();
         order.setUserId(userId);
-        order.setPickupSlot(request.pickupSlot());
+        order.setPickupSlot(cleanRequired(request.pickupSlot(), "Pickup slot is required."));
+        order.setLocation(cleanRequired(request.location(), "Pickup location is required."));
+        order.setPickupTimeZone(validateTimeZone(request.pickupTimeZone()));
         order.setOverallStatus("PENDING_VENDOR");
         order.setPaymentStatus("PAID");
         order.setCreatedAt(LocalDateTime.now());
@@ -151,6 +154,7 @@ public class OrderServiceImpl implements OrderService {
                     order.getTotalAmount(),
                     order.getPickupSlot(),
                     order.getLocation(),
+                    order.getPickupTimeZone(),
                     order.getCreatedAt()
             );
             myOrders.add(dto);
@@ -228,6 +232,7 @@ public class OrderServiceImpl implements OrderService {
                 scannerPrincipal == null || isAdmin(scannerPrincipal) ? order.getTotalAmount() : visibleTotal,
                 order.getPickupSlot(),
                 order.getLocation(),
+                order.getPickupTimeZone(),
                 order.getToken(),
                 order.getCreatedAt(),
                 itemResponses
@@ -295,5 +300,21 @@ public class OrderServiceImpl implements OrderService {
                 || "TIMEOUT".equalsIgnoreCase(orderStatus)
                 || "CANCELLED".equalsIgnoreCase(orderStatus)
                 || "REFUNDED".equalsIgnoreCase(order.getPaymentStatus());
+    }
+
+    private String cleanRequired(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+        return value.trim();
+    }
+
+    private String validateTimeZone(String timeZone) {
+        String cleaned = cleanRequired(timeZone, "Pickup timezone is required.");
+        try {
+            return ZoneId.of(cleaned).getId();
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid pickup timezone: " + cleaned);
+        }
     }
 }
