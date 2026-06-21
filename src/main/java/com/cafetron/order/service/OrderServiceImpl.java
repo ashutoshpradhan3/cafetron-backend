@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -77,7 +78,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setUserId(userId);
         order.setPickupSlot(cleanRequired(request.pickupSlot(), "Pickup slot is required."));
-        validatePickupSlotTime(request.pickupSlotTime());
+        validatePickupSlotInstant(request.pickupSlotTime(), request.pickupSlotEpochMillis());
         order.setLocation(cleanRequired(request.location(), "Pickup location is required."));
         String pickupTimeZone = validateTimeZone(request.pickupTimeZone());
         order.setPickupTimeZone(pickupTimeZone);
@@ -332,7 +333,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private void validatePickupSlotTime(String pickupSlotTime) {
+    private void validatePickupSlotInstant(String pickupSlotTime, Long pickupSlotEpochMillis) {
         String cleaned = cleanRequired(pickupSlotTime, "Pickup slot time is required.");
         LocalTime pickupTime;
         try {
@@ -341,12 +342,25 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Invalid pickup slot time: " + cleaned);
         }
 
-        LocalDate cafeteriaToday = LocalDate.now(CAFETERIA_ZONE);
-        ZonedDateTime pickupDateTime = ZonedDateTime.of(cafeteriaToday, pickupTime, CAFETERIA_ZONE);
-        ZonedDateTime earliestPickupTime = ZonedDateTime.now(CAFETERIA_ZONE).plusMinutes(MIN_PICKUP_LEAD_MINUTES);
+        if (pickupSlotEpochMillis == null) {
+            throw new IllegalArgumentException("Pickup slot timestamp is required.");
+        }
 
-        if (pickupDateTime.isBefore(earliestPickupTime)) {
+        Instant pickupInstant;
+        try {
+            pickupInstant = Instant.ofEpochMilli(pickupSlotEpochMillis);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid pickup slot timestamp.");
+        }
+
+        Instant earliestPickupTime = Instant.now().plusSeconds(MIN_PICKUP_LEAD_MINUTES * 60);
+        if (pickupInstant.isBefore(earliestPickupTime)) {
             throw new IllegalArgumentException("Pickup time must be at least 30 minutes from now.");
+        }
+
+        LocalTime cafeteriaPickupTime = pickupInstant.atZone(CAFETERIA_ZONE).toLocalTime().withSecond(0).withNano(0);
+        if (!cafeteriaPickupTime.equals(pickupTime)) {
+            throw new IllegalArgumentException("Pickup slot timestamp does not match the selected slot time.");
         }
     }
 
