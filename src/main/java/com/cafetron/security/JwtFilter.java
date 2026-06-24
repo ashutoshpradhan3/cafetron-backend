@@ -29,24 +29,33 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+        String token = null;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // Extract token from cookies instead of the Authorization header
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // If no token is present in cookies, continue filter chain without authenticating
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final String token = authHeader.substring(7);
-
         try {
-            final String userId = jwtUtil.extractUserId(token);  // ← extracts user.id
+            final String userId = jwtUtil.extractUserId(token);
 
             if (userId != null &&
                     SecurityContextHolder.getContext()
                             .getAuthentication() == null) {
 
                 UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(userId);  // ← loads by user.id
+                        userDetailsService.loadUserByUsername(userId);
 
                 if (jwtUtil.isTokenValid(token, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken =
@@ -64,7 +73,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Invalid token — Spring Security rejects protected routes
+            // Invalid or expired token — context remains clear, request fails downstream if route is protected
         }
 
         filterChain.doFilter(request, response);

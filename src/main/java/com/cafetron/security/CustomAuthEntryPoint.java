@@ -24,7 +24,7 @@ public class CustomAuthEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.getWriter().write(
-                "{\"error\": \"401 Unauthorized\", \"reason\": \"" + reason + "\", \"hint\": \"Add header: Authorization: Bearer <token>\"}"
+                "{\"error\": \"401 Unauthorized\", \"reason\": \"" + reason + "\", \"hint\": \"Ensure the secure 'jwt' HttpOnly cookie is present in the request headers.\"}"
         );
     }
 }

@@ -16,11 +16,27 @@ public class CorsConfig {
     @Value("${cafetron.cors.allowed-origin-patterns:https://cafetron-backend-3aof.onrender.com/, http://localhost:4200,http://127.0.0.1:4200}")
     private String allowedOriginPatterns;
 
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration config = new CorsConfiguration();
+//
+//        config.setAllowedOriginPatterns(List.of("https://cafetron-frontend-iy4p.vercel.app/"));
+//        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+//        config.setAllowedHeaders(List.of("*"));
+//        config.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", config);
+//        return source;
+//    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOriginPatterns(List.of("https://cafetron-frontend-iy4p.vercel.app/"));
+        // Dynamically use the configuration values from application.yml
+        config.setAllowedOriginPatterns(parseAllowedOriginPatterns());
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -29,6 +45,7 @@ public class CorsConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
 
     private List<String> parseAllowedOriginPatterns() {
         return Arrays.stream(allowedOriginPatterns.split(","))
